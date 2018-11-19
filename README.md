@@ -13,4 +13,6 @@ Most of the Rust example is taken from:
 and is also available on [GitHub](https://github.com/ProgrammingRust).
 
     
-The Python part is a translation of the aforementioned code done by myself.
+  - The Python part is a translation of the aforementioned code done by myself.
+  - I planned to add R, C/C++ and FORTRAN 
+  - and maybe Matlab/Octave, if I am in the mood
