@@ -1,8 +1,39 @@
 extern crate num;
+extern crate image;
+
 use num::Complex;
 use std::str::FromStr;
 
+
 #[allow(dead_code)]
+/// Render the Mandelbrot set
+///
+/// maps each pixel in the buffer onto the Complex plane, given the needed
+/// bounds for the image
+fn render(buffer: &mut [u8],
+          bounds: (usize, usize),
+          upper_left: Complex<f64>,
+          lower_right: Complex<f64>) {
+    // make sure the buffer fits bounds
+    assert!(buffer.len() == bounds.0 * bounds.1);
+
+    // apply is_member to each pixel in the buffer
+    for row in 0..bounds.0 {
+        for column in 0..bounds.1 {
+            // transform the point
+            let poi = pixel_to_point(bounds, (column, row),
+                                     upper_left, lower_right);
+
+            // match, 255 is the range of greyscale
+            buffer[row * bounds.0 + column] =
+            match is_member(poi, 255) {
+                None => 0,
+                Some(count) => 255 - count as u8
+            };
+        }
+    }
+}
+
 
 /// Convert image pixel to Complex number
 ///
@@ -47,8 +78,8 @@ fn coordinate_to_complex(s: &str) -> Option<Complex<f64>> {
 
 #[test]
 fn test_coordinate_to_complex() {
-    assert_eq!(coordinate_to_complex("5.4,6.3"), Complex {re: 5.4, im: 6.3});
-    assert_eq!(coordinate_to_complex(".3,1"), Complex {re: 0.1, im: 1.0});
+    assert_eq!(coordinate_to_complex("5.4,6.3"), Some(Complex {re: 5.4, im: 6.3}));
+    assert_eq!(coordinate_to_complex(".3,1"), Some(Complex {re: 0.1, im: 1.0}));
     assert_eq!(coordinate_to_complex(",6.66"), None);
 }
 
@@ -75,9 +106,9 @@ fn test_parse_pair() {
     assert_eq!(parse_pair::<i32>(",", ','), None);
     assert_eq!(parse_pair::<i32>("6,", ','), None);
     assert_eq!(parse_pair::<i32>(",500", ','), None);
-    assert_eq!(parse_pair::<i32>("200,500", ','), (200, 500));
-    assert_eq!(parse_pair::<i32>("200x500", 'x'), (200, 500));
-    assert_eq!(parse_pair::<f64>("0.5x1.0", 'x'), (0.5, 1.0));
+    assert_eq!(parse_pair::<i32>("200,500", ','), Some((200, 500)));
+    assert_eq!(parse_pair::<i32>("200x500", 'x'), Some((200, 500)));
+    assert_eq!(parse_pair::<f64>("0.5x1.0", 'x'), Some((0.5, 1.0)));
 
 }
 
