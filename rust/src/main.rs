@@ -3,9 +3,29 @@ extern crate image;
 
 use num::Complex;
 use std::str::FromStr;
+use std::fs::File;
+use std::io::Write;
+use image::ColorType;
+use image::png::PNGEncoder;
 
+/// Write the file
+///
+/// Write the buffer into the file as a PNG image. The shape of the buffer is
+/// given by bounds in pixel
+fn write_image(filename: &str, buffer: &[u8], bounds: (usize, usize))
+    -> Result<(), std::io::Error> {
+    // create the output file
+    let file = File::create(filename)?;
 
-#[allow(dead_code)]
+    // create the encode
+    let encoder = PNGEncoder::new(file);
+    encoder.encode(&buffer, bounds.0 as u32, bounds.1 as u32,
+                   ColorType::Gray(8))?;
+
+    // return Result
+    Ok(())
+}
+
 /// Render the Mandelbrot set
 ///
 /// maps each pixel in the buffer onto the Complex plane, given the needed
@@ -15,11 +35,11 @@ fn render(buffer: &mut [u8],
           upper_left: Complex<f64>,
           lower_right: Complex<f64>) {
     // make sure the buffer fits bounds
-    assert!(buffer.len() == bounds.0 * bounds.1);
+    assert_eq!(buffer.len(), bounds.0 * bounds.1);
 
     // apply is_member to each pixel in the buffer
-    for row in 0..bounds.0 {
-        for column in 0..bounds.1 {
+    for row in 0..bounds.1 {
+        for column in 0..bounds.0 {
             // transform the point
             let poi = pixel_to_point(bounds, (column, row),
                                      upper_left, lower_right);
@@ -47,7 +67,7 @@ fn pixel_to_point(bounds: (usize, usize),
                   lower_right: Complex<f64>)
     -> Complex<f64> {
     // get width and height of the image
-    let (width, height) = (upper_left.re - lower_right.re,
+    let (width, height) = (lower_right.re - upper_left.re,
                            upper_left.im - lower_right.im);
 
     // return the Complex number.
@@ -137,12 +157,38 @@ fn test_is_member() {
 }
 
 
-/// Test some complex numbers for creating tests
 fn main() {
-    println!("Test parsing");
-    println!("20.5,40.4 => {:?}", coordinate_to_complex("20.5,40.4"));
+    // get command line args
+    let args: Vec<String> = std::env::args().collect();
 
-    println!("Test Loop:");
-    println!("(1.0 + 1.0i): {:?}", is_member(Complex {re: 1.0, im: 1.0}, 500));
-    println!("(0.1 - 0.3i): {:?}", is_member(Complex {re: 0.1, im: -0.3}, 500));
+    // check number of arguments
+    if args.len() != 5 {
+        writeln!(std::io::stderr(), "Usage: mandelbrot FILE PIXELS UPPERLEFT LOWERRIGHT")
+            .unwrap();
+        writeln!(std::io::stderr(), "Example: {} mandel.png 1000x750 -1.2,0.35 -1,0.2",
+                 args[0]).unwrap();
+
+        // exit
+        std::process::exit(1);
+    }
+
+    // Program was called correctly
+    // Parse the arguments
+    let bounds = parse_pair(&args[2], 'x')
+        .expect("Error parsing image dimensions.");
+    let upper_left = coordinate_to_complex(&args[3])
+        .expect("Error parsing upper left corner.");
+    let lower_right = coordinate_to_complex(&args[4])
+        .expect("Error parsing lower right corner.");
+
+    // create the buffer vector and fill with zeros
+    let mut buffer = vec![0; bounds.0 * bounds.1];
+
+    // render the image
+    // this is the part that takes some time
+    render(&mut buffer, bounds, upper_left, lower_right);
+
+    // write the buffer to image
+    write_image(&args[1], &buffer, bounds)
+        .expect("Error writing png file");
 }
