@@ -2,6 +2,7 @@
 Calculate and plot the Mandelbrot set using Python
 """
 import png
+import time
 
 
 def write_image(filename, buffer, bounds):
@@ -176,11 +177,13 @@ if __name__ == '__main__':
               "-1.2+0.35j -1+0.2j")
         sys.exit()
 
-    # render the set. TODO: here the time function
+    # render the set.
+    start = time.time()
     mandelbrot = render(bounds=bounds,
                         upper_left=upper_left,
                         lower_right=lower_right
                         )
+    print("Calculation: %.3f seconds" % (time.time() - start))
 
     # write the result
     write_image(filename=filename, buffer=mandelbrot, bounds=bounds)

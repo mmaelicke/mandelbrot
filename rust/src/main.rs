@@ -5,6 +5,7 @@ use num::Complex;
 use std::str::FromStr;
 use std::fs::File;
 use std::io::Write;
+use std::time::Instant;
 use image::ColorType;
 use image::png::PNGEncoder;
 
@@ -184,9 +185,14 @@ fn main() {
     // create the buffer vector and fill with zeros
     let mut buffer = vec![0; bounds.0 * bounds.1];
 
+    // do some benchmarking
+    let now = Instant::now();
     // render the image
     // this is the part that takes some time
     render(&mut buffer, bounds, upper_left, lower_right);
+    let wall_time = now.elapsed();
+    println!("Calculation: {}.{} seconds.",
+             wall_time.as_secs(), wall_time.subsec_millis());
 
     // write the buffer to image
     write_image(&args[1], &buffer, bounds)
