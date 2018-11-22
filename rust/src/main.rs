@@ -29,7 +29,7 @@ fn write_image(filename: &str, buffer: &[u8], bounds: (usize, usize))
 /// Render the Mandelbrot set
 ///
 /// maps each pixel in the buffer onto the Complex plane, given the needed
-/// bounds for the image
+/// bounds for the image. Does apply the actual calculation function.
 fn render(buffer: &mut [u8],
           bounds: (usize, usize),
           upper_left: Complex<f64>,
@@ -163,7 +163,7 @@ fn main() {
 
     // check number of arguments
     if args.len() != 5 {
-        writeln!(std::io::stderr(), "Usage: mandelbrot FILE PIXELS UPPERLEFT LOWERRIGHT")
+        writeln!(std::io::stderr(), "Usage: mandelbrot FILE SIZE UPPERLEFT LOWERRIGHT")
             .unwrap();
         writeln!(std::io::stderr(), "Example: {} mandel.png 1000x750 -1.2,0.35 -1,0.2",
                  args[0]).unwrap();
