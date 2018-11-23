@@ -31,7 +31,7 @@ def render(bounds, upper_left, lower_right):
     """Render the Mandelbrot set
 
     Applies the actual calculation function to the complex representation of
-    each pixel
+    each pixel on the complex plane
 
     Parameters
     ----------
